@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict
-from .formatters import ColoredFormatter
+from .formatters import ColoredFormatter, StructuredFormatter, LogStage
 
 class LogManager:
     """Manages application-wide logging configuration and functionality."""
@@ -63,10 +63,13 @@ class LogManager:
         # 根据名称确定日志文件位置
         if name.startswith("video"):
             log_file = self.video_log_dir / f"{name}.log"
+            use_structured = True
         elif name.startswith("system"):
             log_file = self.system_log_dir / f"{name}.log"
+            use_structured = False
         else:
             log_file = self.processing_log_dir / f"{name}.log"
+            use_structured = True
             
         # 添加文件处理器
         file_handler = self._create_file_handler(
@@ -78,7 +81,7 @@ class LogManager:
         logger.addHandler(file_handler)
         
         # 添加控制台处理器
-        console_handler = self._create_console_handler()
+        console_handler = self._create_console_handler(use_structured=use_structured)
         logger.addHandler(console_handler)
         
         self.loggers[name] = logger
@@ -101,12 +104,18 @@ class LogManager:
         handler.setFormatter(formatter)
         return handler
         
-    def _create_console_handler(self) -> logging.Handler:
+    def _create_console_handler(self, use_structured: bool = False) -> logging.Handler:
         """创建控制台日志处理器"""
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(ColoredFormatter(
-            '%(asctime)s - %(levelname)s - %(message)s'
-        ))
+        if use_structured:
+            handler.setFormatter(StructuredFormatter(
+                '%(asctime)s - %(levelname)s - %(message)s',
+                bilingual=True
+            ))
+        else:
+            handler.setFormatter(ColoredFormatter(
+                '%(asctime)s - %(levelname)s - %(message)s'
+            ))
         return handler
         
     def get_video_logger(self) -> logging.Logger:
@@ -120,6 +129,23 @@ class LogManager:
     def get_whisper_logger(self) -> logging.Logger:
         """获取Whisper专用日志器"""
         return self.get_logger("video.whisper")
+
+    def log_with_stage(self, logger: logging.Logger, stage: LogStage, level: int, msg: str, *args, **kwargs):
+        """使用阶段标记记录日志"""
+        if not isinstance(stage, LogStage):
+            raise ValueError("stage must be an instance of LogStage")
+            
+        # 添加阶段信息到extra字典
+        extra = kwargs.get('extra', {})
+        extra['stage'] = stage
+        kwargs['extra'] = extra
+        
+        logger.log(level, msg, *args, **kwargs)
+
+    def log_progress(self, logger: logging.Logger, progress: float, msg: str, level: int = logging.INFO):
+        """记录带进度的日志"""
+        extra = {'progress': progress}
+        logger.log(level, msg, extra=extra)
         
     def cleanup_old_logs(self, days: int = 30):
         """清理指定天数之前的日志文件"""
