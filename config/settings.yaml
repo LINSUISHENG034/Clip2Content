@@ -2,7 +2,7 @@ models:
   whisper:
     model_size: large-v2
     device: cuda
-
+  
   ollama:
     base_url: http://localhost:11434
     timeout: 300
@@ -10,3 +10,14 @@ models:
 wechat:
   appid: WX_APP_ID
   secret: WX_APP_SECRET
+
+video_processing:
+  output_dir: "output/video_results"
+  temp_dir: "temp/video_processing"
+  ffmpeg:
+    segment_length: 300  # 5 minutes per segment
+    silence_threshold: 30  # 30 seconds silence threshold
+  whisper:
+    confidence_threshold: 0.6
+    language: "zh"
+    task: "transcribe"
