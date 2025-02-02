@@ -1,0 +1,12 @@
+models:
+  whisper:
+    model_size: large-v2
+    device: cuda
+
+  ollama:
+    base_url: http://localhost:11434
+    timeout: 300
+
+wechat:
+  appid: WX_APP_ID
+  secret: WX_APP_SECRET
