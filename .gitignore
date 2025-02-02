@@ -4,6 +4,11 @@
 # 忽略某个特定的文件
 secret_config.json
 
-# 忽略某个目录
+# 输出目录
 /output/
+
+# 临时存储目录
 /temp/
+
+# 测试脚本目录
+/test/  
