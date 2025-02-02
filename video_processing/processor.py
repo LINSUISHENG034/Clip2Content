@@ -2,11 +2,11 @@ import os
 import subprocess
 import whisper
 import yaml
+import torch
+import numpy as np
 from pathlib import Path
 from typing import List, Optional, Callable
 from concurrent.futures import ThreadPoolExecutor
-import numpy as np
-import torch
 from .exceptions import FFmpegError, WhisperError, SilenceDetectionError, ConfidenceThresholdError
 from .models import TranscriptionSegment, ProcessingResult
 from utils.logger.setup import get_logger, get_ffmpeg_logger, get_whisper_logger
@@ -157,26 +157,43 @@ class VideoProcessor:
             # Convert Whisper segments to our format
             segments = []
             for segment in result['segments']:
-                confidence = segment.get('confidence', 0.0)
+                text = segment.get('text', '').strip()
+                avg_logprob = segment.get('avg_logprob', float('-inf'))
+                no_speech_prob = segment.get('no_speech_prob', 1.0)
+                compression_ratio = segment.get('compression_ratio', 0.0)
                 
-                # Check confidence threshold
-                if confidence < self.config['video_processing']['whisper']['confidence_threshold']:
+                # Check for empty text
+                if not text:
+                    self.whisper_logger.warning("检测到空文本片段")
+                    raise ConfidenceThresholdError(0.0, 1.0)
+                
+                # Check log probability threshold
+                logprob_threshold = self.config['video_processing']['whisper'].get('logprob_threshold', -1.0)
+                if avg_logprob < logprob_threshold:
                     self.whisper_logger.warning(
-                        f"片段置信度低于阈值：{confidence:.2f} < "
-                        f"{self.config['video_processing']['whisper']['confidence_threshold']}"
+                        f"片段对数概率低于阈值：{avg_logprob:.2f} < {logprob_threshold}"
                     )
-                    raise ConfidenceThresholdError(confidence, 
-                        self.config['video_processing']['whisper']['confidence_threshold'])
+                    raise ConfidenceThresholdError(float(np.exp(avg_logprob)),
+                        float(np.exp(logprob_threshold)))
+                
+                # Check for no speech probability
+                if no_speech_prob > 0.8:  # 高概率是非语音
+                    self.whisper_logger.warning(
+                        f"检测到可能的非语音片段：no_speech_prob = {no_speech_prob:.2f}"
+                    )
                 
                 segments.append(TranscriptionSegment(
                     start=segment['start'],
                     end=segment['end'],
-                    text=segment['text'].strip(),
-                    confidence=confidence
+                    text=text,
+                    avg_logprob=avg_logprob,
+                    no_speech_prob=no_speech_prob,
+                    compression_ratio=compression_ratio
                 ))
                 self.whisper_logger.debug(
                     f"转写片段：{segment['start']:.1f}-{segment['end']:.1f} "
-                    f"置信度：{confidence:.2f}"
+                    f"对数概率：{avg_logprob:.2f} "
+                    f"置信度：{float(np.exp(avg_logprob)):.2f}"
                 )
             
             self.whisper_logger.info(f"片段转写完成，共{len(segments)}个文本段")
@@ -231,6 +248,17 @@ class VideoProcessor:
             self._update_progress(0.1, "加载Whisper模型...")
             if self.model is None:
                 device = "cuda" if self.use_cuda else "cpu"
+                if self.use_cuda:
+                    # 设置 CUDA 设备
+                    cuda_device = self.config['models']['whisper'].get('cuda_device_index', 0)
+                    torch.cuda.set_device(cuda_device)
+                    self.whisper_logger.info(f"使用 CUDA 设备 {cuda_device}")
+                
+                # 设置环境变量以禁用 Triton 警告
+                if not self.config['video_processing']['whisper'].get('use_triton', True):
+                    os.environ['TRITON_DISABLE_AUTO_MIXED_PRECISION'] = '1'
+                    os.environ['TRITON_DISABLE_DYNAMIC_PARALLELISM'] = '1'
+                
                 self.whisper_logger.info(f"加载Whisper模型：{self.config['models']['whisper']['model_size']} ({device})")
                 self.model = whisper.load_model(
                     self.config['models']['whisper']['model_size'],

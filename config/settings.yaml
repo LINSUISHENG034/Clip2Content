@@ -1,7 +1,8 @@
 models:
   whisper:
-    model_size: large-v2
+    model_size: medium
     device: cuda
+    cuda_device_index: 0  # 指定 CUDA 设备索引
   
   ollama:
     base_url: http://localhost:11434
@@ -18,6 +19,10 @@ video_processing:
     segment_length: 300  # 5 minutes per segment
     silence_threshold: 30  # 30 seconds silence threshold
   whisper:
-    confidence_threshold: 0.6
+    confidence_threshold: 0.6  # 保留用于向后兼容
+    logprob_threshold: -0.3  # 基于测试结果调整（-0.11 的两倍余量）
+    no_speech_threshold: 0.6  # 非语音概率阈值（基于测试数据调整）
     language: "zh"
     task: "transcribe"
+    word_timestamps: true  # 启用词级别时间戳
+    use_triton: false  # 禁用 Triton 加速以避免警告

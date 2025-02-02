@@ -5,10 +5,17 @@ from pathlib import Path
 @dataclass
 class TranscriptionSegment:
     """Represents a segment of transcribed text with timing information"""
-    start: float  # Start time in seconds
-    end: float    # End time in seconds
-    text: str     # Transcribed text
-    confidence: float  # Confidence score
+    start: float          # Start time in seconds
+    end: float           # End time in seconds
+    text: str            # Transcribed text
+    avg_logprob: float   # Average log probability
+    no_speech_prob: float # Probability of no speech
+    compression_ratio: float  # Audio compression ratio
+    
+    @property
+    def confidence(self) -> float:
+        """Convert log probability to confidence score (0-1)"""
+        return min(1.0, max(0.0, float(np.exp(self.avg_logprob))))
 
 @dataclass
 class ProcessingResult:

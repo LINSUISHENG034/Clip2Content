@@ -1,0 +1,53 @@
+D:\Users\LINSUISHENG034\anaconda3\envs\content_processing_env\lib\site-packages\whisper\timing.py:42: UserWarning: Failed to launch Triton kernels, likely due to missing CUDA toolkit; falling back to a slower median kernel implementation...
+  warnings.warn(
+D:\Users\LINSUISHENG034\anaconda3\envs\content_processing_env\lib\site-packages\whisper\timing.py:146: UserWarning: Failed to launch Triton kernels, likely due to missing CUDA toolkit; falling back to a slower DTW implementation...
+  warnings.warn(
+D:\Users\LINSUISHENG034\anaconda3\envs\content_processing_env\lib\site-packages\whisper\timing.py:42: UserWarning: Failed to launch Triton kernels, likely due to missing CUDA toolkit; falling back to a slower median kernel implementation...
+  warnings.warn(
+D:\Users\LINSUISHENG034\anaconda3\envs\content_processing_env\lib\site-packages\whisper\timing.py:146: UserWarning: Failed to launch Triton kernels, likely due to missing CUDA toolkit; falling back to a slower DTW implementation...
+  warnings.warn(
+开始测试转录：C:\Users\LINSUISHENG034\Desktop\Douyin\test_videos\00m33s.mp4
+使用设备：cuda
+加载Whisper模型(medium)...
+开始转录...
+
+转录结果：
+--------------------------------------------------
+
+片段 1:
+时间: 0.00s - 7.76s
+文本: 减重最棒的碳水就是这个 不接受任何反驳 而且还特别的方便 做一次饭能吃一礼拜 砸豆300克砸凉200克
+对数概率: -0.1122
+置信度: 0.8938
+非语音概率: 0.0939
+压缩率: 1.4264
+
+片段 2:
+时间: 8.46s - 18.78s
+文本: 大米200克 这就是一礼拜的主食了 加水给他泡一个小时 泡多了容易粘一小时足够了 看这颜色多好看 不需要很多水 稍微没过米就可以了 电饭锅正常煮饭
+对数概率: -0.1122
+置信度: 0.8938
+非语音概率: 0.0939
+压缩率: 1.4264
+
+片段 3:
+时间: 18.78s - 26.32s
+文本: 正好了就是这样的 煮出来的熟重是1420 用这个数除以14 差不多一份是100克 这一个球就是一顿饭的主食
+对数概率: -0.1122
+置信度: 0.8938
+非语音概率: 0.0939
+压缩率: 1.4264
+
+片段 4:
+时间: 26.32s - 30.40s
+文本: 放冰箱冷冻 午饭和晚饭每顿饭一个球 热一下就能吃 特别方便
+对数概率: -0.1139
+置信度: 0.8923
+非语音概率: 0.5616
+压缩率: 0.9419
+
+统计信息：
+总片段数: 4
+平均置信度: 0.8935
+空文本片段数: 0
+可能的非语音片段数: 0

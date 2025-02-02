@@ -196,7 +196,7 @@ d) 用户界面：
 # config/settings.yaml
 models:
   whisper:
-    model_size: large-v2
+    model_size: medium
     device: cuda
   
   ollama:
