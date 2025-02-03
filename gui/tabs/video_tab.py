@@ -34,6 +34,7 @@ class VideoTab(QWidget):
         super().__init__()
         self.processor = None
         self.processing_thread = None
+        self.current_result = None  # 存储当前处理结果
         self.init_ui()
     
     def init_ui(self):
@@ -190,6 +191,9 @@ class VideoTab(QWidget):
         self.status_label.setText(status)
 
     def processing_complete(self, result):
+        # Save the result
+        self.current_result = result
+        
         # Re-enable UI elements
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
@@ -220,6 +224,9 @@ class VideoTab(QWidget):
             )
 
     def processing_error(self, error_msg: str):
+        # Clear current result
+        self.current_result = None
+        
         # Re-enable UI elements
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
